@@ -25,23 +25,19 @@ class User:
     
     @property
     def xp_total(self) -> int:
-        return self.xp_total
+        return self._xp_total
     
     @property
     def coins(self) -> int:
-        return self.coins
-    
-    @property
-    def xp_total(self) -> int:
-        return self.xp_total
+        return self._coins
     
     @property
     def level(self) -> int:
-        return self.level
+        return self._level
     
     @property
     def created_at(self) -> datetime:
-        return self.created_at
+        return self._created_at
     
     # Core behavior
 
