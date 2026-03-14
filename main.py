@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
 from app.api.endpoints import router
 from app.database.sqlite_repositories import SQLiteUserRepository
 from app.domain.user import User
@@ -33,7 +34,17 @@ app = FastAPI(
     """,
     docs_url="/docs",
     redoc_url="/redoc",
-    openapi_url="/openapi.json"
+    openapi_url="/openapi.json",
+    lifespan=lifespan
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8100", "http://localhost:8101", "http://localhost:8102", "http://localhost:8103", "http://localhost:8104", "http://localhost:8105", "http://localhost:8106"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
 )
 
 app.include_router(router, prefix="/api/v1")

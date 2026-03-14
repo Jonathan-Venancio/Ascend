@@ -86,17 +86,16 @@ async def create_user(name: str = Query(..., description="Nome do usuário"), us
     - **user_id**: ID único do usuário (query parameter, padrão: 1)
     """
     try:
-        user = User(
-            user_id=user_id,
-            name=name
-        )
-        saved_user = user_repo.save_user(user)
+        user = User(id=user_id, name=name, xp_total=0, level=1, coins=0)
+        user_repo.create_user(user)
         return UserResponse(
-            id=saved_user.id,
-            name=saved_user.name,
-            xp_total=saved_user.xp_total,
-            level=saved_user.level,
-            coins=saved_user.coins
+            id=user.id,
+            name=user.name,
+            xp_total=user.xp_total,
+            level=user.level,
+            coins=user.coins
         )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

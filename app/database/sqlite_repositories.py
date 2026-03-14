@@ -41,7 +41,7 @@ class SQLiteUserRepository(UserRepository):
                 created_at=datetime.fromisoformat(row[5])
             )
     
-    def save_user(self, user: User) -> User:
+    def create_user(self, user: User) -> User:
         with sqlite3.connect(self.db_path) as conn:
             conn.execute("""
                 INSERT OR REPLACE INTO users (id, name, xp_total, level, coins, created_at)
