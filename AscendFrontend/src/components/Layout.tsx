@@ -27,7 +27,8 @@ export default function Layout({ children, coins, playerLevel, totalXp }: {
       {/* Top bar */}
       <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md">
         <div className="container flex items-center justify-between h-14 px-4">
-          <Link to="/" className="font-display text-xs text-primary text-glow-gold">
+          <Link to="/" className="flex items-center gap-2 font-display text-xs text-primary text-glow-gold">
+            <img src="/logo.png" alt="Ascend" className="w-6 h-6" />
             Ascend
           </Link>
 

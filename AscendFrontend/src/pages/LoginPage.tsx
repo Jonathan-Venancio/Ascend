@@ -32,9 +32,12 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <Card className="w-full max-w-md border-0 shadow-2xl shadow-yellow-500/20">
-        <CardHeader>
-          <CardTitle className="text-center text-primary text-glow-gold font-display">Login</CardTitle>
-          <CardDescription className="text-center">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <img src="/logo.png" alt="Ascend" className="w-12 h-12" />
+          </div>
+          <CardTitle className="text-primary text-glow-gold font-display">Login</CardTitle>
+          <CardDescription>
             Entre para acessar sua jornada
           </CardDescription>
         </CardHeader>
