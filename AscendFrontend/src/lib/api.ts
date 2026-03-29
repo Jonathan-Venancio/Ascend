@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000'; // Backend está na porta 8000
+// Usar variável de ambiente ou fallback para localhost
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // Create axios instance
 export const api = axios.create({
