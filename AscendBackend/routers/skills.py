@@ -30,7 +30,8 @@ async def get_skills(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
-    skills = db.query(Skill).offset(skip).limit(limit).all()
+    # Only return skills created by the current user
+    skills = db.query(Skill).filter(Skill.created_by == current_user.id).offset(skip).limit(limit).all()
     return skills
 
 
@@ -57,7 +58,8 @@ async def create_skill(
     db_skill = Skill(
         name=skill.name,
         parent_id=skill.parent_id,
-        color=color
+        color=color,
+        created_by=current_user.id
     )
     db.add(db_skill)
     db.commit()

@@ -39,6 +39,7 @@ class Skill(Base):
     name = Column(String, nullable=False)
     parent_id = Column(Integer, ForeignKey("skills.id"), nullable=True)
     color = Column(String, default="43 96% 56%")
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships

@@ -18,7 +18,8 @@ async def get_rewards(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
-    rewards = db.query(Reward).offset(skip).limit(limit).all()
+    # Only return rewards created by the current user
+    rewards = db.query(Reward).filter(Reward.created_by == current_user.id).offset(skip).limit(limit).all()
     return rewards
 
 

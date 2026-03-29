@@ -28,7 +28,8 @@ async def get_quests(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
-    quests = db.query(Quest).offset(skip).limit(limit).all()
+    # Only return quests created by the current user
+    quests = db.query(Quest).filter(Quest.created_by == current_user.id).offset(skip).limit(limit).all()
     return quests
 
 
