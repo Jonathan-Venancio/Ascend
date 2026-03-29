@@ -13,7 +13,7 @@ export default function ShopPage() {
         coins={store.coins}
         buyReward={(rewardId: string) => store.buyReward(parseInt(rewardId))}
         addReward={store.addReward}
-        removeReward={() => Promise.resolve()}
+        removeReward={store.removeReward}
       />
     </Layout>
   );

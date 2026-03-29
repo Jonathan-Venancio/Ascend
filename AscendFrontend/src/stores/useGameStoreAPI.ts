@@ -304,6 +304,23 @@ export function useGameStoreAPI() {
     }
   }, []);
 
+  const removeReward = useCallback(async (rewardId: number) => {
+    console.log('DEBUG: removeReward called with ID:', rewardId);
+    try {
+      console.log('DEBUG: Calling rewardsAPI.delete...');
+      await rewardsAPI.delete(rewardId);
+      console.log('DEBUG: API call successful, removing from local state');
+      // Remove from local state immediately
+      setAllRewards(prev => prev.filter(reward => reward.id !== rewardId));
+      toast.success('Reward deleted successfully!');
+    } catch (error: any) {
+      console.error('DEBUG: Error in removeReward:', error);
+      console.error('DEBUG: Error response:', error.response?.data);
+      toast.error(error.response?.data?.detail || 'Failed to delete reward');
+      throw error;
+    }
+  }, []);
+
   // Profile
   const updateTitle = useCallback(async (title: string) => {
     try {
@@ -348,6 +365,7 @@ export function useGameStoreAPI() {
     completeQuest,
     buyReward,
     addReward,
+    removeReward,
     updateTitle,
     loadData,
     

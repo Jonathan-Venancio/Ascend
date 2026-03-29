@@ -9,7 +9,7 @@ interface Props {
   coins: number;
   buyReward: (id: string) => void;
   addReward: (name: string, description: string, cost: number, emoji: string) => void;
-  removeReward: (id: string) => void;
+  removeReward: (id: number) => void;
 }
 
 function formatPurchaseDate(dateString: string): string {
@@ -138,7 +138,10 @@ export default function Shop({ rewards, myRewards, coins, buyReward, addReward, 
                   Resgatar
                 </button>
                 <button
-                  onClick={() => removeReward(reward.id)}
+                  onClick={() => {
+                    console.log('DEBUG: Remove button clicked, reward ID:', reward.id, 'type:', typeof reward.id);
+                    removeReward(Number(reward.id));
+                  }}
                   className="opacity-0 group-hover:opacity-100 text-xs text-destructive hover:underline flex items-center justify-center gap-0.5"
                 >
                   <Trash2 size={10} /> Remover
