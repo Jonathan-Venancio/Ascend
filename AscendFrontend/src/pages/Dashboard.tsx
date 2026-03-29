@@ -1,5 +1,5 @@
 import { Skill, Quest } from "@/stores/useGameStore";
-import { Swords, TreePine, Star, Zap } from "lucide-react";
+import { Swords, TreePine, Star } from "lucide-react";
 
 interface Props {
   skills: Skill[];
@@ -59,7 +59,7 @@ export default function Dashboard({ skills, quests, coins, playerLevel, totalXp 
           { icon: TreePine, label: "Habilidades", value: skills.length, glow: "box-glow-cyan" },
           { icon: Swords, label: "Missões Ativas", value: activeQuests.length, glow: "box-glow-purple" },
           { icon: Star, label: "Completas", value: completedQuests.length, glow: "box-glow-green" },
-          { icon: Zap, label: "Moedas", value: coins, glow: "box-glow-gold" },
+          { icon: () => <span className="text-lg">🪙</span>, label: "Moedas", value: coins, glow: "box-glow-gold" },
         ].map((stat) => (
           <div key={stat.label} className={`rpg-card ${stat.glow} flex flex-col items-center gap-2 py-4`}>
             <stat.icon size={20} className="text-primary" />
@@ -122,8 +122,8 @@ export default function Dashboard({ skills, quests, coins, playerLevel, totalXp 
       {skills.length === 0 && (
         <div className="rpg-card text-center py-8 space-y-2">
           <TreePine size={40} className="mx-auto text-muted-foreground" />
-          <p className="text-muted-foreground">Comece adicionando suas habilidades!</p>
-          <p className="text-xs text-muted-foreground">Vá para a aba Habilidades e crie sua árvore de estudos</p>
+          <p className="text-muted-foreground">Você ainda não adquiriu nenhuma habilidade!</p>
+          <p className="text-xs text-muted-foreground">Vá para a aba Habilidades, clique em uma skill e use o botão 🎯 para adquiri-la</p>
         </div>
       )}
     </div>

@@ -7,10 +7,26 @@ interface Props {
   quests: Quest[];
   skills: Skill[];
   completeQuest: (id: string) => void;
-  clearCompletedQuests: () => void;
   generateQuest: (skillId: string) => void;
   addQuest: (input: CreateQuestInput) => void;
   removeQuest: (id: string) => void;
+}
+
+function formatCompletionDate(dateString?: string): string {
+  if (!dateString) return "";
+  
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMins < 1) return "Agora";
+  if (diffMins < 60) return `${diffMins} min atrás`;
+  if (diffHours < 24) return `${diffHours}h atrás`;
+  if (diffDays < 7) return `${diffDays} dias atrás`;
+  return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function formatDueDate(ts: number): string {
@@ -32,8 +48,9 @@ function isDueExpired(ts?: number | null): boolean {
   return ts < Date.now();
 }
 
-export default function Quests({ quests, skills, completeQuest, clearCompletedQuests, generateQuest, addQuest, removeQuest }: Props) {
+export default function Quests({ quests, skills, completeQuest, generateQuest, addQuest, removeQuest }: Props) {
   const [showCreate, setShowCreate] = useState(false);
+  const [completedMinimized, setCompletedMinimized] = useState(true); // Começa minimizado
   const active = quests.filter((q) => !q.completed);
   const completed = quests.filter((q) => q.completed);
 
@@ -136,27 +153,39 @@ export default function Quests({ quests, skills, completeQuest, clearCompletedQu
 
       {/* Completed */}
       {completed.length > 0 && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-              Completas ({completed.length})
-            </h2>
-            <button
-              onClick={clearCompletedQuests}
-              className="text-xs text-destructive hover:underline flex items-center gap-1"
-            >
-              <Trash2 size={12} /> Limpar
-            </button>
-          </div>
-          {completed.map((q) => (
-            <div key={q.id} className="rpg-card opacity-50 flex items-center gap-3">
-              <div className="w-6 h-6 rounded bg-success/20 flex items-center justify-center shrink-0">
-                <Check size={14} className="text-success" />
-              </div>
-              <span className="text-sm line-through">{q.title}</span>
-              <span className="ml-auto text-xs text-primary">+{q.xpReward} XP</span>
+        <div className="space-y-3">
+          <h2 
+            className="text-xs text-muted-foreground font-semibold uppercase tracking-wider flex items-center gap-2 cursor-pointer hover:text-foreground transition-colors"
+            onClick={() => setCompletedMinimized(!completedMinimized)}
+          >
+            <span className={`transition-transform duration-200 ${completedMinimized ? 'rotate-0' : 'rotate-90'}`}>
+              ▶
+            </span>
+            Completas ({completed.length})
+          </h2>
+          {!completedMinimized && (
+            <div className="space-y-2">
+              {completed.map((q) => (
+                <div key={q.id} className="rpg-card opacity-50 flex items-center gap-3">
+                  <div className="w-6 h-6 rounded bg-success/20 flex items-center justify-center shrink-0">
+                    <Check size={14} className="text-success" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm line-through">{q.title}</div>
+                    {q.completedAt && (
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                        <CalendarIcon size={10} />
+                        Concluída {formatCompletionDate(q.completedAt)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-xs text-primary">+{q.xpReward} XP</div>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
 

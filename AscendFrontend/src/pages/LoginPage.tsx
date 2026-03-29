@@ -30,18 +30,18 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <Card className="w-full max-w-md border-0 shadow-2xl shadow-yellow-500/20">
         <CardHeader>
-          <CardTitle>Login</CardTitle>
-          <CardDescription>
-            Enter your credentials to access your account
+          <CardTitle className="text-center text-primary text-glow-gold font-display">Login</CardTitle>
+          <CardDescription className="text-center">
+            Entre para acessar sua jornada
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username" className="text-foreground">Usuário</Label>
               <Input
                 id="username"
                 type="text"
@@ -49,10 +49,12 @@ const LoginPage = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 disabled={isLoading}
+                placeholder="Seu usuário"
+                className="bg-muted/30 border-border"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-foreground">Senha</Label>
               <Input
                 id="password"
                 type="password"
@@ -60,17 +62,19 @@ const LoginPage = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
+                placeholder="Sua senha"
+                className="bg-muted/30 border-border"
               />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Logging in...' : 'Login'}
+              {isLoading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
           <div className="mt-4 text-center">
-            <span className="text-sm text-gray-600">
-              Don't have an account?{' '}
-              <Link to="/register" className="text-blue-600 hover:underline">
-                Register
+            <span className="text-sm text-muted-foreground">
+              Não tem conta?{' '}
+              <Link to="/register" className="text-primary hover:underline font-semibold">
+                Cadastre-se
               </Link>
             </span>
           </div>

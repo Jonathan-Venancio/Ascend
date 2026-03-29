@@ -10,6 +10,7 @@ interface Props {
   generateQuest: (skillId: string) => void;
   addMilestone: (skillId: string, level: number, title: string) => void;
   removeMilestone: (skillId: string, index: number) => void;
+  acquireSkill: (skillId: string) => void;
 }
 
 interface NodePos {
@@ -78,12 +79,14 @@ function SkillTreeCanvas({
   generateQuest,
   onAddChild,
   onMilestones,
+  acquireSkill,
 }: {
   skills: Skill[];
   removeSkill: (id: string) => void;
   generateQuest: (skillId: string) => void;
   onAddChild: (parentId: string) => void;
   onMilestones: (skillId: string) => void;
+  acquireSkill: (skillId: string) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -350,6 +353,14 @@ function SkillTreeCanvas({
                   style={{ bottom: NODE_RADIUS * 2 + 8 }}
                 >
                   <button
+                    onClick={(e) => { e.stopPropagation(); acquireSkill(skill.id); setSelectedSkill(null); }}
+                    className="p-1.5 rounded-lg text-xs border border-border hover:scale-110 transition-transform"
+                    style={{ background: "hsl(142 71% 45% / 0.2)", color: "hsl(142 71% 45%)" }}
+                    title="Adquirir habilidade"
+                  >
+                    🎯
+                  </button>
+                  <button
                     onClick={(e) => { e.stopPropagation(); generateQuest(skill.id); setSelectedSkill(null); }}
                     className="p-1.5 rounded-lg text-xs border border-border hover:scale-110 transition-transform"
                     style={{ background: colorAlpha(0.2), color }}
@@ -402,7 +413,7 @@ function SkillTreeCanvas({
   );
 }
 
-export default function SkillTree({ skills, addSkill, removeSkill, generateQuest, addMilestone, removeMilestone }: Props) {
+export default function SkillTree({ skills, addSkill, removeSkill, generateQuest, addMilestone, removeMilestone, acquireSkill }: Props) {
   const [newName, setNewName] = useState("");
   const [addingTo, setAddingTo] = useState<string | null | "root">(null);
   const [childName, setChildName] = useState("");
@@ -478,6 +489,7 @@ export default function SkillTree({ skills, addSkill, removeSkill, generateQuest
           generateQuest={generateQuest}
           onAddChild={handleAddChild}
           onMilestones={(id) => setMilestoneSkillId(id)}
+          acquireSkill={acquireSkill}
         />
       </div>
 

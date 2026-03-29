@@ -9,6 +9,7 @@ export default function ShopPage() {
     <Layout coins={store.coins} playerLevel={store.playerLevel} totalXp={store.totalXp}>
       <Shop
         rewards={convertAPIRewardsToRewards(store.rewards)}
+        myRewards={store.myRewards}
         coins={store.coins}
         buyReward={(rewardId: string) => store.buyReward(parseInt(rewardId))}
         addReward={store.addReward}

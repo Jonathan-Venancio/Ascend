@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
+from datetime import datetime
 
 from database import get_db
 from models import User, Reward, UserReward
-from schemas import RewardCreate, RewardResponse, BuyRewardRequest, BuyRewardResponse
+from schemas import RewardBase, RewardResponse, RewardCreate, BuyRewardRequest, BuyRewardResponse, UserRewardResponse
 from auth import get_current_active_user
 
 router = APIRouter()
@@ -46,60 +47,58 @@ async def buy_reward(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
+    print(f"DEBUG: User {current_user.id} trying to buy reward {request.reward_id}")
+    print(f"DEBUG: User coins: {current_user.coins}")
+    
     # Get reward
     reward = db.query(Reward).filter(Reward.id == request.reward_id).first()
     if not reward:
+        print(f"DEBUG: Reward {request.reward_id} not found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Reward not found"
         )
     
+    print(f"DEBUG: Reward found: {reward.name}, cost: {reward.cost}")
+    
     # Check if user has enough coins
     if current_user.coins < reward.cost:
+        print(f"DEBUG: Not enough coins. User has {current_user.coins}, needs {reward.cost}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Not enough coins"
         )
     
-    # Check if user already bought this reward
-    existing_purchase = db.query(UserReward).filter(
-        UserReward.user_id == current_user.id,
-        UserReward.reward_id == request.reward_id
-    ).first()
-    
-    if existing_purchase:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Reward already purchased"
-        )
-    
+    print(f"DEBUG: Processing purchase...")
     # Process purchase
     current_user.coins -= reward.cost
     
     user_reward = UserReward(
         user_id=current_user.id,
-        reward_id=request.reward_id
+        reward_id=request.reward_id,
+        purchased_at=datetime.utcnow()  # Add purchase timestamp
     )
     db.add(user_reward)
     db.commit()
     
+    print(f"DEBUG: Purchase completed. Remaining coins: {current_user.coins}")
+    
     return BuyRewardResponse(
-        message=f"Successfully purchased '{reward.name}'!",
+        message=f"Reward '{reward.name}' purchased successfully!",
         remaining_coins=current_user.coins
     )
 
 
-@router.get("/my/", response_model=List[RewardResponse])
+@router.get("/my/", response_model=List[UserRewardResponse])
 async def get_my_rewards(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
     user_rewards = db.query(UserReward).filter(
         UserReward.user_id == current_user.id
-    ).all()
+    ).order_by(UserReward.purchased_at.desc()).all()
     
-    rewards = [user_reward.reward for user_reward in user_rewards]
-    return rewards
+    return user_rewards
 
 
 @router.delete("/{reward_id}")

@@ -42,8 +42,25 @@ export interface UserQuest {
   id: number;
   quest_id: number;
   completed: boolean;
-  completed_at: string | null;
-  quest: Quest;
+  completed_at?: string;
+  quest: {
+    id: number;
+    skill_id: number;
+    title: string;
+    description: string;
+    xp_reward: number;
+    coin_reward: number;
+    recurring: boolean;
+    recurrence_interval?: string;
+    created_at: string;
+    skill: {
+      id: number;
+      name: string;
+      parent_id?: number;
+      color: string;
+      created_at: string;
+    };
+  };
 }
 
 export interface Reward {
@@ -53,6 +70,13 @@ export interface Reward {
   cost: number;
   emoji: string;
   created_at: string;
+}
+
+export interface UserReward {
+  id: number;
+  reward_id: number;
+  purchased_at: string;
+  reward: Reward;
 }
 
 export interface Profile {
@@ -69,6 +93,7 @@ export interface Profile {
   skills: UserSkill[];
   quests: UserQuest[];
   unlocked_titles: string[];
+  user_rewards: UserReward[];
 }
 
 export interface CreateQuestInput {
@@ -129,10 +154,22 @@ export function useGameStoreAPI() {
     }
   }, []);
 
+  const removeSkill = useCallback(async (skillId: number) => {
+    try {
+      await skillsAPI.delete(skillId);
+      setAllSkills(prev => prev.filter(skill => skill.id !== skillId));
+      toast.success('Skill deleted successfully!');
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'Failed to delete skill');
+      throw error;
+    }
+  }, []);
+
   const acquireSkill = useCallback(async (skillId: number) => {
     try {
       await skillsAPI.acquire(skillId);
-      await loadData(); // Reload to get updated user skills
+      // Reload to get updated user skills and profile
+      await loadData(); 
       toast.success('Skill acquired successfully!');
     } catch (error: any) {
       toast.error(error.response?.data?.detail || 'Failed to acquire skill');
@@ -140,15 +177,73 @@ export function useGameStoreAPI() {
     }
   }, [loadData]);
 
-  // Quests
-  const addQuest = useCallback(async (input: CreateQuestInput) => {
+  const addMilestone = useCallback(async (skillId: number, level: number, title: string) => {
     try {
-      const response = await questsAPI.create(input);
+      const response = await skillsAPI.addMilestone(skillId, { level, title });
+      await loadData(); // Reload to get updated skills with milestones
+      toast.success('Milestone added successfully!');
+      return response.data;
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'Failed to add milestone');
+      throw error;
+    }
+  }, [loadData]);
+
+  const removeMilestone = useCallback(async (skillId: number, level: number) => {
+    try {
+      await skillsAPI.removeMilestone(skillId, level);
+      await loadData(); // Reload to get updated skills with milestones
+      toast.success('Milestone removed successfully!');
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'Failed to remove milestone');
+      throw error;
+    }
+  }, [loadData]);
+
+  // Quests
+  const addQuest = useCallback(async (input: any) => {
+    try {
+      // Convert frontend format to backend format
+      const backendData = {
+        skill_id: parseInt(input.skillId),
+        title: input.title,
+        description: input.description,
+        xp_reward: input.xpReward,
+        coin_reward: input.coinReward,
+        recurring: input.recurring || false,
+        recurrence_interval: input.recurrenceInterval || null,
+      };
+      
+      const response = await questsAPI.create(backendData);
       setAllQuests(prev => [...prev, response.data]);
       toast.success('Quest created successfully!');
       return response.data;
     } catch (error: any) {
       toast.error(error.response?.data?.detail || 'Failed to create quest');
+      throw error;
+    }
+  }, []);
+
+  const generateQuest = useCallback(async (skillId: number) => {
+    try {
+      const response = await questsAPI.generate(skillId);
+      setAllQuests(prev => [...prev, response.data]);
+      toast.success('Quest generated successfully!');
+      return response.data;
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'Failed to generate quest');
+      throw error;
+    }
+  }, []);
+
+  const removeQuest = useCallback(async (questId: number) => {
+    try {
+      await questsAPI.delete(questId);
+      // Remove from local state immediately
+      setAllQuests(prev => prev.filter(quest => quest.id !== questId));
+      toast.success('Quest deleted successfully!');
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'Failed to delete quest');
       throw error;
     }
   }, []);
@@ -232,6 +327,7 @@ export function useGameStoreAPI() {
     // Computed properties (for compatibility with existing components)
     skills: profile?.skills || [],
     quests: profile?.quests || [],
+    myRewards: profile?.user_rewards || [],
     rewards: allRewards,
     coins: profile?.user.coins || 0,
     totalXp: profile?.user.total_xp || 0,
@@ -241,8 +337,13 @@ export function useGameStoreAPI() {
     
     // Actions
     addSkill,
+    removeSkill,
     acquireSkill,
+    addMilestone,
+    removeMilestone,
     addQuest,
+    generateQuest,
+    removeQuest,
     assignQuest,
     completeQuest,
     buyReward,
@@ -251,12 +352,7 @@ export function useGameStoreAPI() {
     loadData,
     
     // Legacy methods for compatibility
-    removeSkill: async () => toast.error('Not implemented yet'),
-    generateQuest: async () => toast.error('Not implemented yet'),
     clearCompletedQuests: async () => toast.error('Not implemented yet'),
-    removeQuest: async () => toast.error('Not implemented yet'),
-    addMilestone: async () => toast.error('Not implemented yet'),
-    removeMilestone: async () => toast.error('Not implemented yet'),
     selectTitle: updateTitle,
   };
 }

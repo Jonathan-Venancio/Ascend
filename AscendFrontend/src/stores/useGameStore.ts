@@ -25,6 +25,7 @@ export interface Quest {
   xpReward: number;
   coinReward: number;
   completed: boolean;
+  completedAt?: string;
   createdAt: number;
   dueDate?: number | null;
   recurring: boolean;

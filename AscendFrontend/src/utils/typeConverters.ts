@@ -27,10 +27,11 @@ export function convertUserQuestToQuest(userQuest: UserQuest): OldQuest {
     xpReward: userQuest.quest.xp_reward,
     coinReward: userQuest.quest.coin_reward,
     completed: userQuest.completed,
+    completedAt: userQuest.completed_at,
     createdAt: new Date(userQuest.quest.created_at).getTime(),
     dueDate: null,
     recurring: userQuest.quest.recurring,
-    recurrenceInterval: userQuest.quest.recurrence_interval || null
+    recurrenceInterval: userQuest.quest.recurrence_interval as "daily" | "weekly" | "monthly" | null
   };
 }
 
@@ -49,7 +50,22 @@ export function convertUserSkillsToSkills(userSkills: UserSkill[]): OldSkill[] {
 }
 
 export function convertUserQuestsToQuests(userQuests: UserQuest[]): OldQuest[] {
-  return userQuests.map(convertUserQuestToQuest);
+  const converted = userQuests.map(convertUserQuestToQuest);
+  
+  // Sort completed quests by completed_at (most recent first)
+  converted.sort((a, b) => {
+    // If both are completed, sort by completion date
+    if (a.completed && b.completed && a.completedAt && b.completedAt) {
+      return new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime();
+    }
+    // If only one is completed, put completed ones first
+    if (a.completed && !b.completed) return -1;
+    if (!a.completed && b.completed) return 1;
+    // If neither is completed, keep original order
+    return 0;
+  });
+  
+  return converted;
 }
 
 export function convertAPIRewardsToRewards(apiRewards: APIReward[]): OldReward[] {

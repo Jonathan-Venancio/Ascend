@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Swords, TreePine, ScrollText, ShoppingBag, User, Menu, X, LogOut } from "lucide-react";
+import { Swords, TreePine, ScrollText, ShoppingBag, User, Menu, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
@@ -19,13 +19,8 @@ export default function Layout({ children, coins, playerLevel, totalXp }: {
 }) {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const xpInLevel = totalXp % 100;
-
-  const handleLogout = () => {
-    logout();
-    // Redirecionar será feito automaticamente pelo ProtectedRoute
-  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -49,16 +44,9 @@ export default function Layout({ children, coins, playerLevel, totalXp }: {
             </div>
             {user && (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground hidden sm:block">
+                <span className="text-xs text-foreground font-medium">
                   {user.username}
                 </span>
-                <button
-                  onClick={handleLogout}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                  title="Logout"
-                >
-                  <LogOut size={16} />
-                </button>
               </div>
             )}
             <button

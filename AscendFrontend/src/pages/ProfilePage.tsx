@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { useGameStoreAPI } from "@/stores/useGameStoreAPI";
 import { useAuth } from "@/contexts/AuthContext";
-import { User, Save, Pencil, ChevronDown } from "lucide-react";
+import { User, Save, Pencil, ChevronDown, LogOut } from "lucide-react";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface Profile {
   name: string;
@@ -21,7 +23,8 @@ function loadProfile(): Profile {
 
 export default function ProfilePage() {
   const store = useGameStoreAPI();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile>(loadProfile);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Profile>(profile);
@@ -34,6 +37,14 @@ export default function ProfilePage() {
   const handleSave = () => {
     setProfile(draft);
     setEditing(false);
+  };
+
+  const handleLogout = () => {
+    console.log('Logout button clicked');
+    logout();
+    toast.success('Logout realizado com sucesso!');
+    // Redirecionar imediatamente para o login
+    navigate('/login');
   };
 
   const hasProfile = profile.name.trim().length > 0;
@@ -149,6 +160,17 @@ export default function ProfilePage() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Logout */}
+        <div className="rpg-card">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-destructive/10 text-destructive text-sm font-semibold hover:bg-destructive/20 transition-colors"
+          >
+            <LogOut size={16} />
+            Sair da Conta
+          </button>
         </div>
       </div>
     </Layout>

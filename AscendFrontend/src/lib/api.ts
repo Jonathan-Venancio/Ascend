@@ -61,6 +61,8 @@ export const skillsAPI = {
   delete: (id: number) => api.delete(`/api/skills/${id}`),
   acquire: (id: number) => api.post(`/api/skills/${id}/acquire`),
   getMySkills: () => api.get('/api/skills/my/'),
+  addMilestone: (skillId: number, data: any) => api.post(`/api/skills/${skillId}/milestones`, data),
+  removeMilestone: (skillId: number, level: number) => api.delete(`/api/skills/${skillId}/milestones/${level}`),
 };
 
 export const questsAPI = {
@@ -70,6 +72,7 @@ export const questsAPI = {
   complete: (questId: number) => api.post('/api/quests/complete', { quest_id: questId }),
   getMyQuests: () => api.get('/api/quests/my/'),
   delete: (id: number) => api.delete(`/api/quests/${id}`),
+  generate: (skillId: number) => api.post(`/api/quests/generate/${skillId}`),
 };
 
 export const rewardsAPI = {

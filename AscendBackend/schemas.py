@@ -52,7 +52,7 @@ class SkillMilestoneResponse(SkillMilestoneBase):
 class SkillBase(BaseModel):
     name: str
     parent_id: Optional[int] = None
-    color: str = "43 96% 56%"
+    color: Optional[str] = None  # Backend will generate random color for root skills
 
 
 class SkillCreate(SkillBase):
@@ -116,6 +116,10 @@ class UserQuestResponse(BaseModel):
         from_attributes = True
 
 
+class TitleUpdate(BaseModel):
+    title: str
+
+
 # Reward schemas
 class RewardBase(BaseModel):
     name: str
@@ -136,12 +140,23 @@ class RewardResponse(RewardBase):
         from_attributes = True
 
 
+class UserRewardResponse(BaseModel):
+    id: int
+    reward_id: int
+    purchased_at: datetime
+    reward: RewardResponse
+
+    class Config:
+        from_attributes = True
+
+
 # Profile schemas
 class ProfileResponse(BaseModel):
     user: UserResponse
     skills: List[UserSkillResponse]
     quests: List[UserQuestResponse]
     unlocked_titles: List[str]
+    user_rewards: List[UserRewardResponse]
 
 
 # Progress schemas

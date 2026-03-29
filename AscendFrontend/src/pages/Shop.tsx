@@ -1,22 +1,39 @@
 import { useState } from "react";
 import { Reward } from "@/stores/useGameStore";
-import { Plus, Trash2, ShoppingBag } from "lucide-react";
+import { Plus, Trash2, ShoppingBag, Clock, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
   rewards: Reward[];
+  myRewards: any[]; // User rewards with purchase data
   coins: number;
   buyReward: (id: string) => void;
   addReward: (name: string, description: string, cost: number, emoji: string) => void;
   removeReward: (id: string) => void;
 }
 
-export default function Shop({ rewards, coins, buyReward, addReward, removeReward }: Props) {
+function formatPurchaseDate(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMins < 1) return "Agora";
+  if (diffMins < 60) return `${diffMins} min atrás`;
+  if (diffHours < 24) return `${diffHours}h atrás`;
+  if (diffDays < 7) return `${diffDays} dias atrás`;
+  return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+export default function Shop({ rewards, myRewards, coins, buyReward, addReward, removeReward }: Props) {
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
   const [cost, setCost] = useState(50);
   const [emoji, setEmoji] = useState("🎁");
+  const [myRewardsMinimized, setMyRewardsMinimized] = useState(true); // Começa minimizado
 
   const handleBuy = (reward: Reward) => {
     if (coins < reward.cost) {
@@ -137,6 +154,39 @@ export default function Shop({ rewards, coins, buyReward, addReward, removeRewar
           <ShoppingBag size={40} className="mx-auto" />
           <p>Nenhuma recompensa</p>
           <p className="text-xs">Adicione recompensas para se motivar!</p>
+        </div>
+      )}
+
+      {/* My Rewards Section */}
+      {myRewards.length > 0 && (
+        <div className="space-y-3">
+          <h2 
+            className="font-display text-xs text-muted-foreground font-semibold uppercase tracking-wider flex items-center gap-2 cursor-pointer hover:text-foreground transition-colors"
+            onClick={() => setMyRewardsMinimized(!myRewardsMinimized)}
+          >
+            <span className={`transition-transform duration-200 ${myRewardsMinimized ? 'rotate-0' : 'rotate-90'}`}>
+              ▶
+            </span>
+            Minhas Recompensas ({myRewards.length})
+          </h2>
+          {!myRewardsMinimized && (
+            <div className="space-y-2">
+              {myRewards.map((userReward) => (
+                <div key={userReward.id} className="rpg-card flex items-center gap-3 bg-muted/30">
+                  <div className="text-2xl">{userReward.reward.emoji}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium">{userReward.reward.name}</div>
+                    <div className="text-xs text-muted-foreground">{userReward.reward.description}</div>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                      <Clock size={10} />
+                      {formatPurchaseDate(userReward.purchased_at)}
+                    </div>
+                  </div>
+                  <div className="text-xs text-primary font-semibold">🪙 {userReward.reward.cost}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
