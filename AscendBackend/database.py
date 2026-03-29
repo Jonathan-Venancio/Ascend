@@ -15,7 +15,7 @@ if "sqlite" in DATABASE_URL:
         DATABASE_URL,
         connect_args={"check_same_thread": False}
     )
-elif "postgresql" in DATABASE_URL:
+elif "postgres" in DATABASE_URL:  # Detect both postgres:// and postgresql://
     print("Using PostgreSQL database")
     engine = create_engine(
         DATABASE_URL,
