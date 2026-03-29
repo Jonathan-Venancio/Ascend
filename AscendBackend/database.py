@@ -6,13 +6,17 @@ import os
 # Database configuration
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./ascend.db")
 
+print(f"Database URL: {DATABASE_URL}")  # Debug log
+
 # Create engine with appropriate configuration for each database type
 if "sqlite" in DATABASE_URL:
+    print("Using SQLite database")
     engine = create_engine(
         DATABASE_URL,
         connect_args={"check_same_thread": False}
     )
 elif "postgresql" in DATABASE_URL:
+    print("Using PostgreSQL database")
     engine = create_engine(
         DATABASE_URL,
         pool_pre_ping=True,  # Verify connections are alive
@@ -20,6 +24,7 @@ elif "postgresql" in DATABASE_URL:
         echo=False           # Set to True for SQL logging in dev
     )
 else:
+    print(f"Unknown database type in URL: {DATABASE_URL}")
     engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
