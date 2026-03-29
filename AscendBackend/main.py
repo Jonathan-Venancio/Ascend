@@ -45,6 +45,8 @@ app.add_middleware(
         "http://localhost:8080",  # Sua porta atual
         "http://127.0.0.1:8080",  # Alternative localhost
         "http://192.168.1.4:8080",  # Network IP
+        "https://ascend.jonathanvenancio.site",  # Production frontend
+        "http://ascend.jonathanvenancio.site",   # Alternative
     ],
     allow_credentials=True,
     allow_methods=["*"],
