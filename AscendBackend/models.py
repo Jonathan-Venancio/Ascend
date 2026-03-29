@@ -43,7 +43,7 @@ class Skill(Base):
 
     # Relationships
     parent = relationship("Skill", remote_side=[id])
-    children = relationship("Skill")
+    children = relationship("Skill", overlaps="parent")
     milestones = relationship("SkillMilestone", back_populates="skill")
     user_skills = relationship("UserSkill", back_populates="skill")
     quests = relationship("Quest", back_populates="skill")

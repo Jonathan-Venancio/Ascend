@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
-import { useGame } from "@/stores/GameContext";
+import { useGameStoreAPI } from "@/stores/useGameStoreAPI";
+import { useAuth } from "@/contexts/AuthContext";
 import { User, Save, Pencil, ChevronDown } from "lucide-react";
 
 interface Profile {
@@ -19,7 +20,8 @@ function loadProfile(): Profile {
 }
 
 export default function ProfilePage() {
-  const store = useGame();
+  const store = useGameStoreAPI();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<Profile>(loadProfile);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Profile>(profile);
@@ -51,7 +53,7 @@ export default function ProfilePage() {
           {!editing ? (
             <div className="text-center space-y-2">
               <h2 className="text-xl font-bold text-foreground">
-                {hasProfile ? profile.name : "Aventureiro"}
+                {hasProfile ? profile.name : (user?.username || "Aventureiro")}
               </h2>
               <p className="text-sm text-primary font-semibold italic">"{store.selectedTitle}"</p>
               {profile.age && (

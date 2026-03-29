@@ -1,14 +1,18 @@
 import Layout from "@/components/Layout";
 import SkillTree from "@/pages/SkillTree";
-import { useGame } from "@/stores/GameContext";
+import { useGameStoreAPI } from "@/stores/useGameStoreAPI";
+import { convertUserSkillsToSkills } from "@/utils/typeConverters";
 
 export default function SkillsPage() {
-  const store = useGame();
+  const store = useGameStoreAPI();
+  
   return (
     <Layout coins={store.coins} playerLevel={store.playerLevel} totalXp={store.totalXp}>
       <SkillTree
-        skills={store.skills}
-        addSkill={store.addSkill}
+        skills={convertUserSkillsToSkills(store.skills)}
+        addSkill={(name: string, parentId: string | null) => 
+          store.addSkill(name, parentId ? parseInt(parentId) : null)
+        }
         removeSkill={store.removeSkill}
         generateQuest={store.generateQuest}
         addMilestone={store.addMilestone}

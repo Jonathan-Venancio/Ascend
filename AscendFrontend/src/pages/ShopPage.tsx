@@ -1,17 +1,18 @@
 import Layout from "@/components/Layout";
 import Shop from "@/pages/Shop";
-import { useGame } from "@/stores/GameContext";
+import { useGameStoreAPI } from "@/stores/useGameStoreAPI";
+import { convertAPIRewardsToRewards } from "@/utils/typeConverters";
 
 export default function ShopPage() {
-  const store = useGame();
+  const store = useGameStoreAPI();
   return (
     <Layout coins={store.coins} playerLevel={store.playerLevel} totalXp={store.totalXp}>
       <Shop
-        rewards={store.rewards}
+        rewards={convertAPIRewardsToRewards(store.rewards)}
         coins={store.coins}
-        buyReward={store.buyReward}
+        buyReward={(rewardId: string) => store.buyReward(parseInt(rewardId))}
         addReward={store.addReward}
-        removeReward={store.removeReward}
+        removeReward={() => Promise.resolve()}
       />
     </Layout>
   );
