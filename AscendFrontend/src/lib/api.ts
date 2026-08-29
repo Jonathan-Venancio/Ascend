@@ -1,8 +1,7 @@
 import axios from 'axios';
 
-// URL do backend direto com fallback para localhost
-const API_BASE_URL = 'https://backascend.jonathanvenancio.site';
-//const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
 // Create axios instance
 export const api = axios.create({

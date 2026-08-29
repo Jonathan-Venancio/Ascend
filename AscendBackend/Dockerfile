@@ -1,6 +1,11 @@
 FROM python:3.11-slim
 
-# Set working directory
+ENV POETRY_VERSION=2.4.1 \
+    POETRY_HOME="/opt/poetry" \
+    POETRY_VIRTUALENVS_CREATE=false \
+    POETRY_NO_INTERACTION=1 \
+    PATH="/opt/poetry/bin:$PATH"
+
 WORKDIR /app
 
 # Install system dependencies including PostgreSQL client and build tools
@@ -9,13 +14,12 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     postgresql-client \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir "poetry==${POETRY_VERSION}"
 
-# Copy requirements first for better caching
-COPY requirements.txt .
-
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies (cached layer)
+COPY pyproject.toml poetry.lock ./
+RUN poetry install --only main --no-root
 
 # Copy application code
 COPY . .

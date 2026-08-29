@@ -21,14 +21,27 @@ Backend API for the Ascend gamification system built with FastAPI and SQLAlchemy
 
 ## Setup
 
-1. **Install dependencies**:
+Requisitos: [Poetry](https://python-poetry.org/) (recomendado via pipx) e Python 3.11+.
+
+1. **Instalar dependências**:
 ```bash
-pip install -r requirements.txt
+cd AscendBackend
+poetry install
 ```
 
-2. **Run the server**:
+2. **Rodar com Taskipy**:
 ```bash
-uvicorn main:app --reload
+poetry run task backend    # só o backend (http://localhost:8000)
+poetry run task frontend   # só o frontend (http://localhost:8080)
+poetry run task run        # abre 2 terminais: back + front
+```
+
+O ambiente virtual fica em `.venv/` dentro do projeto (configurado em `poetry.toml`).
+
+Também funciona assim:
+```bash
+poetry shell
+task backend
 ```
 
 The API will be available at `http://localhost:8000`
@@ -108,5 +121,7 @@ AscendBackend/
 │   ├── quests.py
 │   ├── rewards.py
 │   └── profile.py
-└── requirements.txt     # Python dependencies
+├── pyproject.toml       # Dependências (Poetry)
+├── poetry.lock          # Lock file das dependências
+└── poetry.toml          # Configuração local do Poetry
 ```
