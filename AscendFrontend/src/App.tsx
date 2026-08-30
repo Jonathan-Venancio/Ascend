@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import SkillsPage from "./pages/SkillsPage";
+import SkillTreePage from "./pages/SkillTreePage";
 import QuestsPage from "./pages/QuestsPage";
 import ShopPage from "./pages/ShopPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -42,6 +43,11 @@ const App = () => (
             <Route path="/skills" element={
               <ProtectedRoute>
                 <SkillsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/skills/:skillId" element={
+              <ProtectedRoute>
+                <SkillTreePage />
               </ProtectedRoute>
             } />
             <Route path="/quests" element={

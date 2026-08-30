@@ -64,7 +64,10 @@ export default function Layout({ children, coins, playerLevel, totalXp }: {
         {/* Desktop sidebar */}
         <nav className="hidden sm:flex flex-col w-16 border-r border-border bg-card/50 items-center py-4 gap-2">
           {navItems.map((item) => {
-            const active = location.pathname === item.to;
+            const active =
+              item.to === "/"
+                ? location.pathname === "/"
+                : location.pathname === item.to || location.pathname.startsWith(`${item.to}/`);
             return (
               <Link
                 key={item.to}
@@ -86,7 +89,10 @@ export default function Layout({ children, coins, playerLevel, totalXp }: {
         {menuOpen && (
           <div className="fixed inset-0 z-40 bg-background/95 sm:hidden flex flex-col items-center justify-center gap-6">
             {navItems.map((item) => {
-              const active = location.pathname === item.to;
+              const active =
+                item.to === "/"
+                  ? location.pathname === "/"
+                  : location.pathname === item.to || location.pathname.startsWith(`${item.to}/`);
               return (
                 <Link
                   key={item.to}
@@ -113,7 +119,10 @@ export default function Layout({ children, coins, playerLevel, totalXp }: {
       <nav className="sm:hidden fixed bottom-0 left-0 right-0 border-t border-border bg-card/90 backdrop-blur-md z-30">
         <div className="flex justify-around py-2">
           {navItems.map((item) => {
-            const active = location.pathname === item.to;
+            const active =
+              item.to === "/"
+                ? location.pathname === "/"
+                : location.pathname === item.to || location.pathname.startsWith(`${item.to}/`);
             return (
               <Link
                 key={item.to}

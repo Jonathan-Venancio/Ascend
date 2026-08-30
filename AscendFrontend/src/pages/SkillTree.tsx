@@ -11,6 +11,8 @@ interface Props {
   addMilestone: (skillId: string, level: number, title: string) => void;
   removeMilestone: (skillId: string, index: number) => void;
   acquireSkill: (skillId: string) => void;
+  title?: string;
+  showCreateRoot?: boolean;
 }
 
 interface NodePos {
@@ -413,7 +415,17 @@ function SkillTreeCanvas({
   );
 }
 
-export default function SkillTree({ skills, addSkill, removeSkill, generateQuest, addMilestone, removeMilestone, acquireSkill }: Props) {
+export default function SkillTree({
+  skills,
+  addSkill,
+  removeSkill,
+  generateQuest,
+  addMilestone,
+  removeMilestone,
+  acquireSkill,
+  title = "Árvore de Habilidades",
+  showCreateRoot = true,
+}: Props) {
   const [newName, setNewName] = useState("");
   const [addingTo, setAddingTo] = useState<string | null | "root">(null);
   const [childName, setChildName] = useState("");
@@ -443,23 +455,25 @@ export default function SkillTree({ skills, addSkill, removeSkill, generateQuest
     <div className="flex flex-col h-[calc(100vh-80px)] pb-16 sm:pb-0">
       {/* Header + inputs */}
       <div className="space-y-3 p-1 shrink-0">
-        <h1 className="font-display text-sm text-primary text-glow-gold">🌳 Árvore de Habilidades</h1>
+        <h1 className="font-display text-sm text-primary text-glow-gold">🌳 {title}</h1>
 
-        <div className="rpg-card flex gap-2">
-          <input
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAddRoot()}
-            placeholder="Nova habilidade (ex: Python)"
-            className="flex-1 bg-muted/50 text-foreground rounded px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none"
-          />
-          <button
-            onClick={handleAddRoot}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded font-semibold text-sm hover:opacity-90 transition-opacity"
-          >
-            <Plus size={16} />
-          </button>
-        </div>
+        {showCreateRoot && (
+          <div className="rpg-card flex gap-2">
+            <input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddRoot()}
+              placeholder="Nova habilidade (ex: Python)"
+              className="flex-1 bg-muted/50 text-foreground rounded px-3 py-2 text-sm border border-border focus:border-primary focus:outline-none"
+            />
+            <button
+              onClick={handleAddRoot}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded font-semibold text-sm hover:opacity-90 transition-opacity"
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+        )}
 
         {addingTo && addingTo !== "root" && (
           <div className="rpg-card border-secondary/30 flex gap-2">
