@@ -22,57 +22,87 @@ interface NodePos {
 }
 
 const NODE_RADIUS = 32;
-const CHILD_DISTANCE = 140;
-const ANGLE_SPREAD = (2 * Math.PI) / 8;
+/** Espaço horizontal mínimo entre centros de folhas vizinhas (evita nós/labels sobrepostos). */
+const H_GAP = 120;
+/** Distância vertical entre níveis da árvore. */
+const V_GAP = 160;
 
+/**
+ * Layout hierárquico top-down (estilo roadmap):
+ * - cada nível alinhado na mesma altura
+ * - irmãos espalhados sem sobrepor
+ * - pai centralizado acima dos filhos
+ * - largura da subárvore baseada nas folhas
+ */
 function layoutTree(skills: Skill[]): NodePos[] {
-  const positions: NodePos[] = [];
-  const roots = skills.filter((s) => s.parentId === null);
-  const posMap = new Map<string, { x: number; y: number }>();
+  if (skills.length === 0) return [];
 
-  // Place roots in a horizontal line
-  const rootSpacing = 300;
-  const rootStartX = -(roots.length - 1) * rootSpacing / 2;
+  const idSet = new Set(skills.map((s) => s.id));
+  const childrenByParent = new Map<string, Skill[]>();
 
-  roots.forEach((root, i) => {
-    const x = rootStartX + i * rootSpacing;
-    const y = 0;
-    posMap.set(root.id, { x, y });
-    positions.push({ id: root.id, x, y });
-  });
-
-  // BFS to place children radially around their parent
-  const queue = [...roots];
-  while (queue.length > 0) {
-    const current = queue.shift()!;
-    const children = skills.filter((s) => s.parentId === current.id);
-    if (children.length === 0) continue;
-
-    const parentPos = posMap.get(current.id)!;
-    const grandparentPos = current.parentId ? posMap.get(current.parentId) : null;
-
-    // Calculate base angle (away from grandparent)
-    let baseAngle = Math.PI / 2; // default: downward
-    if (grandparentPos) {
-      baseAngle = Math.atan2(parentPos.y - grandparentPos.y, parentPos.x - grandparentPos.x);
+  for (const skill of skills) {
+    if (skill.parentId && idSet.has(skill.parentId)) {
+      const list = childrenByParent.get(skill.parentId) ?? [];
+      list.push(skill);
+      childrenByParent.set(skill.parentId, list);
     }
-
-    const totalSpread = Math.min((children.length - 1) * ANGLE_SPREAD, Math.PI * 1.5);
-    const startAngle = baseAngle - totalSpread / 2;
-
-    children.forEach((child, i) => {
-      const angle = children.length === 1
-        ? baseAngle
-        : startAngle + (i * totalSpread) / (children.length - 1);
-      const x = parentPos.x + Math.cos(angle) * CHILD_DISTANCE;
-      const y = parentPos.y + Math.sin(angle) * CHILD_DISTANCE;
-      posMap.set(child.id, { x, y });
-      positions.push({ id: child.id, x, y });
-      queue.push(child);
-    });
   }
 
-  return positions;
+  const childrenOf = (id: string) => childrenByParent.get(id) ?? [];
+  const roots = skills.filter(
+    (s) => s.parentId === null || !idSet.has(s.parentId)
+  );
+
+  const widthCache = new Map<string, number>();
+  const subtreeWidth = (id: string): number => {
+    if (widthCache.has(id)) return widthCache.get(id)!;
+    const kids = childrenOf(id);
+    const width =
+      kids.length === 0
+        ? 1
+        : kids.reduce((sum, child) => sum + subtreeWidth(child.id), 0);
+    widthCache.set(id, width);
+    return width;
+  };
+
+  const positions: NodePos[] = [];
+
+  const place = (id: string, depth: number, left: number, right: number) => {
+    const x = ((left + right) / 2) * H_GAP;
+    const y = depth * V_GAP;
+    positions.push({ id, x, y });
+
+    const kids = childrenOf(id);
+    if (kids.length === 0) return;
+
+    const total = kids.reduce((sum, child) => sum + subtreeWidth(child.id), 0);
+    let cursor = left;
+    for (const child of kids) {
+      const w = subtreeWidth(child.id);
+      const span = (w / total) * (right - left);
+      place(child.id, depth + 1, cursor, cursor + span);
+      cursor += span;
+    }
+  };
+
+  const totalRootWidth = roots.reduce((sum, root) => sum + subtreeWidth(root.id), 0);
+  let cursor = 0;
+  for (const root of roots) {
+    const w = subtreeWidth(root.id);
+    place(root.id, 0, cursor, cursor + w);
+    cursor += w;
+  }
+
+  // Centraliza a árvore em x = 0
+  const offsetX = (totalRootWidth * H_GAP) / 2;
+  return positions.map((p) => ({ ...p, x: p.x - offsetX }));
+}
+
+function edgePath(from: NodePos, to: NodePos): string {
+  const startY = from.y + NODE_RADIUS;
+  const endY = to.y - NODE_RADIUS;
+  const midY = (startY + endY) / 2;
+  return `M ${from.x} ${startY} C ${from.x} ${midY}, ${to.x} ${midY}, ${to.x} ${endY}`;
 }
 
 function SkillTreeCanvas({
@@ -104,17 +134,24 @@ function SkillTreeCanvas({
     return m;
   }, [positions]);
 
-  // Center view on mount or when skills change
+  const layoutKey = useMemo(
+    () => skills.map((s) => `${s.id}:${s.parentId ?? ""}`).join("|"),
+    [skills]
+  );
+
+  // Center view when tree structure changes (não ao atualizar XP/nível)
   useEffect(() => {
     if (positions.length === 0 || !containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const cx = rect.width / 2;
-    const cy = rect.height / 2;
-    // Find center of all nodes
+    const cy = Math.min(rect.height * 0.28, 160);
     const avgX = positions.reduce((s, p) => s + p.x, 0) / positions.length;
-    const avgY = positions.reduce((s, p) => s + p.y, 0) / positions.length;
-    setPan({ x: cx - avgX, y: cy - avgY });
-  }, [skills.length]);
+    const minY = Math.min(...positions.map((p) => p.y));
+    setPan({ x: cx - avgX, y: cy - minY });
+    setZoom(1);
+    // positions é derivado de layoutKey; omitimos de deps para não resetar em update de XP
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [layoutKey]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return;
@@ -158,8 +195,11 @@ function SkillTreeCanvas({
     if (!containerRef.current || positions.length === 0) return;
     const rect = containerRef.current.getBoundingClientRect();
     const avgX = positions.reduce((s, p) => s + p.x, 0) / positions.length;
-    const avgY = positions.reduce((s, p) => s + p.y, 0) / positions.length;
-    setPan({ x: rect.width / 2 - avgX, y: rect.height / 2 - avgY });
+    const minY = Math.min(...positions.map((p) => p.y));
+    setPan({
+      x: rect.width / 2 - avgX,
+      y: Math.min(rect.height * 0.28, 160) - minY,
+    });
     setZoom(1);
   };
 
@@ -227,32 +267,24 @@ function SkillTreeCanvas({
 
           {edges.map(({ from, to, skill }, i) => {
             const color = `hsl(${skill.color})`;
+            const d = edgePath(from, to);
             return (
               <g key={i}>
-                {/* Glow line */}
-                <line
-                  x1={from.x} y1={from.y}
-                  x2={to.x} y2={to.y}
+                <path
+                  d={d}
+                  fill="none"
                   stroke={color}
-                  strokeWidth={3}
-                  strokeOpacity={0.15}
+                  strokeWidth={4}
+                  strokeOpacity={0.12}
                   filter="url(#edgeGlow)"
                 />
-                {/* Main line */}
-                <line
-                  x1={from.x} y1={from.y}
-                  x2={to.x} y2={to.y}
+                <path
+                  d={d}
+                  fill="none"
                   stroke={color}
-                  strokeWidth={1.5}
-                  strokeOpacity={0.6}
-                />
-                {/* Small dot at midpoint */}
-                <circle
-                  cx={(from.x + to.x) / 2}
-                  cy={(from.y + to.y) / 2}
-                  r={2}
-                  fill={color}
-                  opacity={0.5}
+                  strokeWidth={1.75}
+                  strokeOpacity={0.65}
+                  strokeLinecap="round"
                 />
               </g>
             );
@@ -333,16 +365,17 @@ function SkillTreeCanvas({
 
               {/* Name label */}
               <div
-                className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-center pointer-events-none"
-                style={{ top: NODE_RADIUS * 2 + 6 }}
+                className="absolute left-1/2 -translate-x-1/2 text-center pointer-events-none"
+                style={{ top: NODE_RADIUS * 2 + 6, width: H_GAP - 16 }}
               >
                 <span
-                  className="text-[10px] font-medium px-1.5 py-0.5 rounded"
+                  className="text-[10px] font-medium px-1.5 py-0.5 rounded inline-block max-w-full truncate"
                   style={{
                     color,
                     background: colorAlpha(0.1),
                     textShadow: `0 0 6px ${colorAlpha(0.4)}`,
                   }}
+                  title={skill.name}
                 >
                   {skill.name}
                 </span>
@@ -354,14 +387,16 @@ function SkillTreeCanvas({
                   className="absolute left-1/2 -translate-x-1/2 flex gap-1 z-30 animate-in fade-in zoom-in-95 duration-150"
                   style={{ bottom: NODE_RADIUS * 2 + 8 }}
                 >
-                  <button
-                    onClick={(e) => { e.stopPropagation(); acquireSkill(skill.id); setSelectedSkill(null); }}
-                    className="p-1.5 rounded-lg text-xs border border-border hover:scale-110 transition-transform"
-                    style={{ background: "hsl(142 71% 45% / 0.2)", color: "hsl(142 71% 45%)" }}
-                    title="Adquirir habilidade"
-                  >
-                    🎯
-                  </button>
+                  {skill.parentId === null && !skill.acquired && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); acquireSkill(skill.id); setSelectedSkill(null); }}
+                      className="p-1.5 rounded-lg text-xs border border-border hover:scale-110 transition-transform"
+                      style={{ background: "hsl(142 71% 45% / 0.2)", color: "hsl(142 71% 45%)" }}
+                      title="Adquirir habilidade"
+                    >
+                      🎯
+                    </button>
+                  )}
                   <button
                     onClick={(e) => { e.stopPropagation(); generateQuest(skill.id); setSelectedSkill(null); }}
                     className="p-1.5 rounded-lg text-xs border border-border hover:scale-110 transition-transform"

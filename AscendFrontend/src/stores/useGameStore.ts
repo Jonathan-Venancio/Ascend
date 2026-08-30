@@ -15,6 +15,8 @@ export interface Skill {
   completed: boolean;
   color: string;
   milestones: SkillMilestone[];
+  /** Se o usuário já adquiriu esta skill (só faz sentido para raízes). */
+  acquired?: boolean;
 }
 
 export interface Quest {

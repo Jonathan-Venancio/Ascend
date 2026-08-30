@@ -126,6 +126,13 @@ async def acquire_skill(
             detail="Skill not found"
         )
     
+    # Only root skills can be acquired
+    if skill.parent_id is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only root skills can be acquired"
+        )
+    
     # Check if user already has this skill
     existing_user_skill = db.query(UserSkill).filter(
         UserSkill.user_id == current_user.id,

@@ -150,7 +150,7 @@ export default function ProfilePage() {
               { label: "Nível", value: store.playerLevel },
               { label: "XP Total", value: store.totalXp },
               { label: "Moedas", value: `🪙 ${store.coins}` },
-              { label: "Habilidades", value: store.skills.length },
+              { label: "Habilidades", value: store.skills.filter(s => !s.skill.parent_id).length },
               { label: "Missões Completas", value: store.quests.filter(q => q.completed).length },
               { label: "Títulos", value: store.unlockedTitles.length },
             ].map((s) => (

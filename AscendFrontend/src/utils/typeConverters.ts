@@ -11,6 +11,7 @@ export function convertUserSkillToSkill(userSkill: UserSkill): OldSkill {
     xpToNext: userSkill.xp_to_next,
     completed: false,
     color: userSkill.skill.color,
+    acquired: true,
     milestones: userSkill.skill.milestones.map(m => ({
       level: m.level,
       title: m.title

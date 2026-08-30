@@ -26,6 +26,7 @@ export function buildAvailableSkills(
       xpToNext: userSkill?.xpToNext ?? 100,
       completed: false,
       color: skill.color,
+      acquired: !!userSkill,
       milestones: skill.milestones.map((m) => ({
         level: m.level,
         title: m.title,
